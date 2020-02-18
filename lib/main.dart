@@ -1,6 +1,11 @@
 import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:waether_app/WeatherModel.dart';
+import 'package:waether_app/WeatherRepo.dart';
+
+import 'WeatherBloc.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,16 +30,22 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         backgroundColor: Colors.grey[900],
         resizeToAvoidBottomInset: false,
-        body: MyHomePage(),
+        body: BlocProvider(
+            builder: (context) => WeatherBloc(new WeatherRepo()),
+            child: MyHomePage()),
       ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
+  bool isWeatherShown = false;
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+    var weatherBloc = BlocProvider.of<WeatherBloc>(context);
+
+    var cityController = TextEditingController();
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -48,103 +59,140 @@ class MyHomePage extends StatelessWidget {
             animation: "roll",
           ),
         ),
-        false
-            ? Column(
-          children: <Widget>[
-            Text(
-              "Search Weather",
-              style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 40,
-                  color: Colors.white70),
-            ),
-            Text(
-              "Quickly",
-              style: TextStyle(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 32,
-                  color: Colors.white70),
-            ),
-            SizedBox(
-              height: 16,
-            ),
-            TextFormField(
-              cursorColor: Colors.white70,
-              controller: TextEditingController(),
-              style: TextStyle(
-                  color: Colors.white70, fontWeight: FontWeight.w400),
-              decoration: InputDecoration(
-                fillColor: Colors.blueAccent,
-                hintText: "City Name...",
-                labelText: "Your Favourite City",
-                labelStyle: TextStyle(color: Colors.white70),
-                hintStyle: TextStyle(
-                    color: Colors.lightBlue,
-                    fontWeight: FontWeight.w300,
-                    fontSize: 14),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Colors.white,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                  borderRadius: BorderRadius.circular(32),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue),
-                  borderRadius: BorderRadius.circular(32),
-                ),
-              ),
-            ),
-          ],
-        )
-            : /*WeatherWidget("City")*/ _weatherProgressWaiting(),
-        SizedBox(
-          height: 8,
-        ),
-        Container(
-          width: MediaQuery
-              .of(context)
-              .size
-              .width,
-          child: FlatButton(
-            shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            onPressed: () {},
-            color: Colors.lightBlue,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Search",
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 40,
-                  color: Colors.white70,
-                ),
-              ),
-            ),
-          ),
+        BlocBuilder<WeatherBloc, WeatherState>(
+          builder: (context, state) {
+            isWeatherShown = false;
+            if (state is WeatherNotSearched) // first initial state
+              return WeatherNotSearchWidget(
+                  context, weatherBloc, cityController);
+            else if (state is WeatherIsLoaded) //weather has been loaded
+              return WeatherWidget(cityController.text, state.weather,
+                  weatherBloc, isWeatherShown = true);
+            else if (state is WeatherIsLoading) // weather is being loaded
+              return _weatherProgressWaiting();
+            else
+              return _weatherLoadError();
+          },
         ),
       ],
     );
   }
 
-  Widget _weatherProgressWaiting() {
-    return Container(
-      width: 64,
-      height: 64,
-      child: CircularProgressIndicator(
-        backgroundColor: Colors.white70,
-        strokeWidth: 8,
-      ),
+  Widget WeatherErrorWidget() {}
+
+  Widget WeatherLoadingWidget() {}
+
+  Widget WeatherNotSearchWidget(BuildContext context, WeatherBloc weatherBloc,
+      TextEditingController cityController) {
+    return Column(
+      children: <Widget>[
+        Text(
+          "Search Weather",
+          style: TextStyle(
+              fontWeight: FontWeight.w500, fontSize: 40, color: Colors.white70),
+        ),
+        Text(
+          "Quickly",
+          style: TextStyle(
+              fontWeight: FontWeight.w300, fontSize: 32, color: Colors.white70),
+        ),
+        SizedBox(
+          height: 16,
+        ),
+        TextFormField(
+          cursorColor: Colors.white70,
+          controller: cityController,
+          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w400),
+          decoration: InputDecoration(
+            fillColor: Colors.blueAccent,
+            hintText: "City Name...",
+            labelText: "Your Favourite City",
+            labelStyle: TextStyle(color: Colors.white70),
+            hintStyle: TextStyle(
+                color: Colors.lightBlue,
+                fontWeight: FontWeight.w300,
+                fontSize: 14),
+            prefixIcon: Icon(
+              Icons.search,
+              color: Colors.white,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+              borderRadius: BorderRadius.circular(32),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 8,
+        ),
+        SearchButton(context, weatherBloc, isWeatherShown, cityController.text),
+      ],
     );
   }
+}
+
+SearchButton(BuildContext context, WeatherBloc weatherBloc, bool isWeatherShown,
+    String cityName) {
+  return Container(
+    width: MediaQuery
+        .of(context)
+        .size
+        .width,
+    child: FlatButton(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      onPressed: () =>
+      isWeatherShown
+          ? weatherBloc.add(new WeatherResetEvent())
+          : weatherBloc.add(new FetchWeatherEvent(cityName)),
+      color: Colors.lightBlue,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          "Search",
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 40,
+            color: Colors.white70,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _weatherLoadError() {
+  return Text(
+    "Weather Could Be Loaded due error or Internet Connectivity",
+    style: TextStyle(color: Colors.redAccent),
+  );
+}
+
+Widget _weatherProgressWaiting() {
+  return Container(
+    width: 64,
+    height: 64,
+    child: CircularProgressIndicator(
+      backgroundColor: Colors.white70,
+      strokeWidth: 8,
+    ),
+  );
 }
 
 class WeatherWidget extends StatelessWidget {
   final String cityName;
 
-  WeatherWidget(this.cityName);
+  final WeatherModel weather;
+
+  final WeatherBloc weatherBloc;
+
+  final bool isWeatherShown;
+
+  WeatherWidget(this.cityName, this.weather, this.weatherBloc,
+      this.isWeatherShown);
 
   @override
   Widget build(BuildContext context) {
@@ -152,40 +200,44 @@ class WeatherWidget extends StatelessWidget {
     return Column(
       children: <Widget>[
         Text(
-          "Erbil",
+          cityName,
           style: TextStyle(
               fontWeight: FontWeight.w800, fontSize: 32, color: Colors.white70),
         ),
         SizedBox(
           height: 24,
         ),
-        _tempretureDegree(20, ""),
+        _tempretureDegree(weather.getTemp.toStringAsFixed(3)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _tempretureDegree(30, "Min"),
-            _tempretureDegree(30, "Max")
+            _tempretureDegree(weather.getMinTemp.toStringAsFixed(2), "Min"),
+            _tempretureDegree(weather.getMaxTemp.toStringAsFixed(2), "Max")
           ],
-        )
+        ),
+        SizedBox(
+          height: 4,
+        ),
+        SearchButton(context, weatherBloc, isWeatherShown, cityName)
       ],
     );
   }
-}
 
-Widget _tempretureDegree(int degree, String tempType) {
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: <Widget>[
-      Text(
-        "${degree}C",
-        style: TextStyle(
-            fontWeight: FontWeight.w600, fontSize: 32, color: Colors.white70),
-      ),
-      Text(
-        "$tempType Tempreture",
-        style: TextStyle(
-            fontWeight: FontWeight.w300, fontSize: 12, color: Colors.white70),
-      ),
-    ],
-  );
+  Widget _tempretureDegree(String degree, [String tempType = "Tempreture"]) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          "${degree}C",
+          style: TextStyle(
+              fontWeight: FontWeight.w600, fontSize: 32, color: Colors.white70),
+        ),
+        Text(
+          "$tempType Tempreture",
+          style: TextStyle(
+              fontWeight: FontWeight.w300, fontSize: 12, color: Colors.white70),
+        ),
+      ],
+    );
+  }
 }

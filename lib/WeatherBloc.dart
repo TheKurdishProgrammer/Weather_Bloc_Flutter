@@ -1,15 +1,32 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:waether_app/WeatherModel.dart';
+import 'package:waether_app/WeatherRepo.dart';
 
 class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
-  @override
-  // TODO: implement initialState
-  WeatherState get initialState => null;
+  WeatherRepo weatherRepo;
+
+  WeatherBloc(this.weatherRepo);
 
   @override
-  Stream<WeatherState> mapEventToState(WeatherEvent event) {
-    // TODO: implement mapEventToState
-    return null;
+  // TODO: implement initialState
+  WeatherState get initialState => WeatherNotSearched();
+
+  @override
+  Stream<WeatherState> mapEventToState(WeatherEvent event) async* {
+    if (event is FetchWeatherEvent) {
+      yield WeatherIsLoading();
+
+      try {
+        var weather = await weatherRepo.getWeather(event.city);
+
+        yield WeatherIsLoaded(weather);
+      } catch (e) {
+        print(e.toString());
+      }
+    } else {
+      yield WeatherNotSearched();
+    }
   }
 }
 
@@ -20,6 +37,28 @@ class WeatherEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class WeatherFetchEvent extends WeatherEvent {}
+class FetchWeatherEvent extends WeatherEvent {
+  final String city;
 
-class WeatherState {}
+  FetchWeatherEvent(this.city);
+}
+
+class WeatherResetEvent extends WeatherEvent {}
+
+class WeatherState extends Equatable {
+  @override
+  // TODO: implement props
+  List<Object> get props => [];
+}
+
+class WeatherIsLoading extends WeatherState {}
+
+class WeatherIsLoaded extends WeatherState {
+  final WeatherModel weather;
+
+  WeatherIsLoaded(this.weather);
+}
+
+class WeatherCouldNotBeLoad extends WeatherState {}
+
+class WeatherNotSearched extends WeatherState {}
