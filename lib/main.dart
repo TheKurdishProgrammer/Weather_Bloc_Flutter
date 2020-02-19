@@ -2,14 +2,31 @@ import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:waether_app/WeatherModel.dart';
-import 'package:waether_app/WeatherRepo.dart';
+import 'package:waether_app/data/weather_api_service.dart';
+import 'package:waether_app/models/built_weather.dart';
 
 import 'WeatherBloc.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(WeatherApp());
 
-class MyApp extends StatelessWidget {
+class WeatherApp extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return WeatherAppState();
+  }
+}
+
+class WeatherAppState extends State<WeatherApp> {
+  WeatherBloc weatherBloc;
+
+  @override
+  void initState() {
+    weatherBloc = WeatherBloc(WeatherApiService.create());
+
+    super.initState();
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -30,11 +47,16 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         backgroundColor: Colors.grey[900],
         resizeToAvoidBottomInset: false,
-        body: BlocProvider(
-            builder: (context) => WeatherBloc(new WeatherRepo()),
-            child: MyHomePage()),
+        body:
+        BlocProvider(create: (context) => weatherBloc, child: MyHomePage()),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    weatherBloc.close();
+    super.dispose();
   }
 }
 
@@ -185,7 +207,7 @@ Widget _weatherProgressWaiting() {
 class WeatherWidget extends StatelessWidget {
   final String cityName;
 
-  final WeatherModel weather;
+  final BuiltWeather weather;
 
   final WeatherBloc weatherBloc;
 
