@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:waether_app/data/weather_api_service.dart';
-import 'package:waether_app/models/built_weather.dart';
+import 'package:waether_app/models/built_root_weather.dart';
 
 class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
   WeatherApiService weatherRepo;
@@ -16,13 +16,14 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
   Stream<WeatherState> mapEventToState(WeatherEvent event) async* {
     if (event is FetchWeatherEvent) {
       yield WeatherIsLoading();
-
+      var weather;
       try {
-        var weather = await weatherRepo.getWeather(event.city);
+        weather = await weatherRepo.getWeather(event.city);
 
-        yield WeatherIsLoaded(weather.body);
+        yield WeatherIsLoaded(weather);
       } catch (e) {
         print(e.toString());
+        yield WeatherCouldNotBeLoad();
       }
     } else {
       yield WeatherNotSearched();
@@ -54,7 +55,7 @@ class WeatherState extends Equatable {
 class WeatherIsLoading extends WeatherState {}
 
 class WeatherIsLoaded extends WeatherState {
-  final BuiltWeather weather;
+  final BuiltRootWeather weather;
 
   WeatherIsLoaded(this.weather);
 }

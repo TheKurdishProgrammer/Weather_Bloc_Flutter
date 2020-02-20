@@ -1,14 +1,13 @@
 import 'package:chopper/chopper.dart';
 import 'package:waether_app/data/built_value_converter.dart';
-import 'package:waether_app/models/built_weather.dart';
+import 'package:waether_app/models/built_root_weather.dart';
 
 part 'weather_api_service.chopper.dart';
 
 @ChopperApi(baseUrl: "/weather")
-//?q=$city&APPID=43ea6baaad7663dc17637e22ee6f78f2
 abstract class WeatherApiService extends ChopperService {
   @Get()
-  Future<Response<BuiltWeather>> getWeather(@Query("q") String q,
+  Future<Response<BuiltRootWeather>> getWeather(@Query("q") String q,
       [@Query("APPID") String appId = "43ea6baaad7663dc17637e22ee6f78f2"]);
 
   static WeatherApiService create() {

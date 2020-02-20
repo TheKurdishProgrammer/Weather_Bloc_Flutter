@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:waether_app/data/weather_api_service.dart';
-import 'package:waether_app/models/built_weather.dart';
+import 'package:waether_app/models/built_root_weather.dart';
 
 import 'WeatherBloc.dart';
 
@@ -88,7 +88,7 @@ class MyHomePage extends StatelessWidget {
               return WeatherNotSearchWidget(
                   context, weatherBloc, cityController);
             else if (state is WeatherIsLoaded) //weather has been loaded
-              return WeatherWidget(cityController.text, state.weather,
+              return WeatherWidget(cityController.text, state.weather.main,
                   weatherBloc, isWeatherShown = true);
             else if (state is WeatherIsLoading) // weather is being loaded
               return _weatherProgressWaiting();
@@ -187,9 +187,14 @@ SearchButton(BuildContext context, WeatherBloc weatherBloc, bool isWeatherShown,
 }
 
 Widget _weatherLoadError() {
-  return Text(
-    "Weather Could Be Loaded due error or Internet Connectivity",
-    style: TextStyle(color: Colors.redAccent),
+  return Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: Text(
+      "Weather Could Be Loaded due error or Internet Connectivity",
+      textAlign: TextAlign.center,
+      style: TextStyle(
+          color: Colors.redAccent, fontSize: 24, fontWeight: FontWeight.w500),
+    ),
   );
 }
 
@@ -207,7 +212,7 @@ Widget _weatherProgressWaiting() {
 class WeatherWidget extends StatelessWidget {
   final String cityName;
 
-  final BuiltWeather weather;
+  final Main weather;
 
   final WeatherBloc weatherBloc;
 
@@ -229,12 +234,12 @@ class WeatherWidget extends StatelessWidget {
         SizedBox(
           height: 24,
         ),
-        _tempretureDegree(weather.getTemp.toStringAsFixed(3)),
+        _tempretureDegree(weather.temp.toStringAsFixed(3)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _tempretureDegree(weather.getMinTemp.toStringAsFixed(2), "Min"),
-            _tempretureDegree(weather.getMaxTemp.toStringAsFixed(2), "Max")
+            _tempretureDegree(weather.tempMin.toStringAsFixed(2), "Min"),
+            _tempretureDegree(weather.tempMax.toStringAsFixed(2), "Max")
           ],
         ),
         SizedBox(
