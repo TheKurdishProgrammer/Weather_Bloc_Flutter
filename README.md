@@ -1,6 +1,5 @@
 
-# Weather_Bloc_Flutter
- # waether_app
+# Flutter Weather App with BLOC and Chopper
 
 a simple weather app flutter project demonstrating BLOC pattern which chopper as a client  for API service
  
