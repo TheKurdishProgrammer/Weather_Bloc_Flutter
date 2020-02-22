@@ -16,9 +16,9 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
   Stream<WeatherState> mapEventToState(WeatherEvent event) async* {
     if (event is FetchWeatherEvent) {
       yield WeatherIsLoading();
-      var weather;
+      BuiltRootWeather weather;
       try {
-        weather = await weatherRepo.getWeather(event.city);
+        weather = (await weatherRepo.getWeather(event.city)).body;
 
         yield WeatherIsLoaded(weather);
       } catch (e) {

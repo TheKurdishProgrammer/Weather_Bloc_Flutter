@@ -116,6 +116,7 @@ abstract class Clouds implements Built<Clouds, CloudsBuilder> {
 abstract class Weather implements Built<Weather, WeatherBuilder> {
   int get id;
 
+
   String get main;
 
   String get description;
