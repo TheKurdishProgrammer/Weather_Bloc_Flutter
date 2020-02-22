@@ -48,7 +48,7 @@ class WeatherAppState extends State<WeatherApp> {
         backgroundColor: Colors.grey[900],
         resizeToAvoidBottomInset: false,
         body:
-        BlocProvider(create: (context) => weatherBloc, child: MyHomePage()),
+            BlocProvider(create: (context) => weatherBloc, child: MyHomePage()),
       ),
     );
   }
@@ -121,30 +121,33 @@ class MyHomePage extends StatelessWidget {
         SizedBox(
           height: 16,
         ),
-        TextFormField(
-          cursorColor: Colors.white70,
-          controller: cityController,
-          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w400),
-          decoration: InputDecoration(
-            fillColor: Colors.blueAccent,
-            hintText: "City Name...",
-            labelText: "Your Favourite City",
-            labelStyle: TextStyle(color: Colors.white70),
-            hintStyle: TextStyle(
-                color: Colors.lightBlue,
-                fontWeight: FontWeight.w300,
-                fontSize: 14),
-            prefixIcon: Icon(
-              Icons.search,
-              color: Colors.white,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.white),
-              borderRadius: BorderRadius.circular(32),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue),
-              borderRadius: BorderRadius.circular(32),
+        Padding(
+          padding: const EdgeInsets.only(left:16.0,right: 16.0),
+          child: TextFormField(
+            cursorColor: Colors.white70,
+            controller: cityController,
+            style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w400),
+            decoration: InputDecoration(
+              fillColor: Colors.blueAccent,
+              hintText: "City Name...",
+              labelText: "Your Favourite City",
+              labelStyle: TextStyle(color: Colors.white70),
+              hintStyle: TextStyle(
+                  color: Colors.lightBlue,
+                  fontWeight: FontWeight.w300,
+                  fontSize: 14),
+              prefixIcon: Icon(
+                Icons.search,
+                color: Colors.white,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+                borderRadius: BorderRadius.circular(32),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue),
+                borderRadius: BorderRadius.circular(32),
+              ),
             ),
           ),
         ),
@@ -159,20 +162,16 @@ class MyHomePage extends StatelessWidget {
 
 SearchButton(BuildContext context, WeatherBloc weatherBloc, bool isWeatherShown,
     String cityName) {
-  return Container(
-    width: MediaQuery
-        .of(context)
-        .size
-        .width,
-    child: FlatButton(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      onPressed: () =>
-      isWeatherShown
-          ? weatherBloc.add(new WeatherResetEvent())
-          : weatherBloc.add(new FetchWeatherEvent(cityName)),
-      color: Colors.lightBlue,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+  return Padding(
+    padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+    child: Container(
+      width: MediaQuery.of(context).size.width,
+      child: FlatButton(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        onPressed: () => isWeatherShown
+            ? weatherBloc.add(new WeatherResetEvent())
+            : weatherBloc.add(new FetchWeatherEvent(cityName)),
+        color: Colors.lightBlue,
         child: Text(
           "Search",
           style: TextStyle(
@@ -218,8 +217,8 @@ class WeatherWidget extends StatelessWidget {
 
   final bool isWeatherShown;
 
-  WeatherWidget(this.cityName, this.weather, this.weatherBloc,
-      this.isWeatherShown);
+  WeatherWidget(
+      this.cityName, this.weather, this.weatherBloc, this.isWeatherShown);
 
   @override
   Widget build(BuildContext context) {
